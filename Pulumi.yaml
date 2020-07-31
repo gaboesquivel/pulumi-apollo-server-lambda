@@ -1,0 +1,3 @@
+name: pulumi-apollo-server-lambda
+runtime: nodejs
+description: Apollo Server Lamba with Pulumi
