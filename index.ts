@@ -4,38 +4,51 @@ import * as pulumi from '@pulumi/pulumi'
 import * as aws from '@pulumi/aws'
 import * as awsx from '@pulumi/awsx'
 import { ApolloServer, gql } from 'apollo-server-lambda'
+import {
+  APIGatewayProxyCallback,
+  APIGatewayProxyEvent,
+  Context as LambdaContext,
+} from 'aws-lambda'
 
-const typeDefs = gql`
+function apolloHandler(
+  event: APIGatewayProxyEvent,
+  context: LambdaContext,
+  callback: APIGatewayProxyCallback) {
+  const typeDefs = gql`
   type Query {
     hello: String
   }
 `
-const resolvers = {
-  Query: {
-    hello: () => 'Hello world!',
-  },
+  const resolvers = {
+    Query: {
+      hello: () => 'Hello world!',
+    },
+  }
+
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+    playground: true,
+    introspection: true,
+  })
+
+  const graphqlHandler = server.createHandler()
+
+  graphqlHandler(event, context, callback)
 }
 
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-  playground: true,
-  introspection: true,
-})
-
-const graphqlHandler = server.createHandler()
 
 const endpoint = new awsx.apigateway.API('apollo', {
   routes: [
     {
       path: '/apollo',
       method: 'GET',
-      eventHandler: graphqlHandler as any,
+      eventHandler: apolloHandler as any,
     },
     {
       path: '/apollo',
       method: 'POST',
-      eventHandler: graphqlHandler as any,
+      eventHandler: apolloHandler as any,
     },
   ],
 })
