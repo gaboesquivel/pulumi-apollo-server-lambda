@@ -32,7 +32,12 @@ function apolloHandler(
     introspection: true,
   })
 
-  const graphqlHandler = server.createHandler()
+  const graphqlHandler = server.createHandler({
+    cors: {
+      origin: '*',
+      credentials: true,
+    },
+  })
 
   graphqlHandler(event, context, callback)
 }
@@ -42,12 +47,7 @@ const endpoint = new awsx.apigateway.API('apollo', {
   routes: [
     {
       path: '/apollo',
-      method: 'GET',
-      eventHandler: apolloHandler as any,
-    },
-    {
-      path: '/apollo',
-      method: 'POST',
+      method: 'ANY',
       eventHandler: apolloHandler as any,
     },
   ],
